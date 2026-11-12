@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Flashlight Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Poppins:wght@400;600&display=swap');
+        
+        :root { 
+            --primary: #00d2ff; 
+            --sos: #ff4444;
+            --glass: rgba(255,255,255,0.08); 
+            --border: rgba(255,255,255,0.1);
+            --ui-scale: 1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; transition: 0.3s; }
+        html[lang="ar"] * { font-family: 'Cairo', sans-serif; }
+        html[lang="en"] * { font-family: 'Poppins', sans-serif; }
+
+        body { background: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #000 70%); color: #fff; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        body.on { background: radial-gradient(circle at 50% 40%, #0a1f2e 0%, #000 70%); }
+        body.sos-active { background: radial-gradient(circle at 50% 40%, #2e0a0a 0%, #000 70%); }
+
+        .top-bar { position: absolute; top: calc(20px * var(--ui-scale)); width: 100%; padding: 0 calc(20px * var(--ui-scale)); display: flex; justify-content: space-between; z-index: 20; }
+        .controls { display: flex; gap: calc(10px * var(--ui-scale)); }
+        
+        .battery { display: flex; align-items: center; gap: 8px; font-size: calc(13px * var(--ui-scale)); background: var(--glass); padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale)); border-radius: 20px; border: 1px solid var(--border); backdrop-filter: blur(10px); }
+        .bat-svg { width: calc(22px * var(--ui-scale)); height: calc(12px * var(--ui-scale)); fill: #aaa; }
+        .bat-svg.low { fill: var(--sos); }
+
+        .btn-glass { background: var(--glass); border: 1px solid var(--border); color: #fff; width: calc(42px * var(--ui-scale)); height: calc(42px * var(--ui-scale)); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(10px); font-weight: bold; font-size: calc(13px * var(--ui-scale)); }
+        .btn-glass:active { transform: scale(0.9); }
+        .btn-glass svg { width: calc(20px * var(--ui-scale)); height: calc(20px * var(--ui-scale)); fill: currentColor; }
+
+        .sos-btn { position: absolute; bottom: calc(40px * var(--ui-scale)); background: rgba(255, 68, 68, 0.15); border: 2px solid var(--sos); color: var(--sos); padding: calc(10px * var(--ui-scale)) calc(25px * var(--ui-scale)); border-radius: 30px; font-weight: bold; font-size: calc(16px * var(--ui-scale)); cursor: pointer; z-index: 20; letter-spacing: 2px; transition: 0.3s; }
+        .sos-btn.active { background: var(--sos); color: #fff; box-shadow: 0 0 20px var(--sos); animation: sosPulse 1s infinite alternate; }
+        @keyframes sosPulse { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .flash-wrap { position: relative; width: calc(240px * var(--ui-scale)); height: calc(240px * var(--ui-scale)); display: flex; align-items: center; justify-content: center; margin-bottom: calc(80px * var(--ui-scale)); }
+        .flash-wrap::before, .flash-wrap::after { content: ''; position: absolute; border-radius: 50%; opacity: 0; transition: 0.6s; z-index: 0; }
+        .flash-wrap::before { width: 100%; height: 100%; background: rgba(0, 210, 255, 0.15); filter: blur(20px); }
+        .flash-wrap::after { width: 130%; height: 130%; background: rgba(0, 210, 255, 0.08); filter: blur(50px); }
+        body.on .flash-wrap::before { opacity: 1; transform: scale(1.1); }
+        body.on .flash-wrap::after { opacity: 1; transform: scale(1.2); animation: pulse 3s infinite alternate; }
+        body.sos-active .flash-wrap::before { background: rgba(255, 68, 68, 0.2); }
+        body.sos-active .flash-wrap::after { background: rgba(255, 68, 68, 0.1); }
+        @keyframes pulse { 0% { filter: blur(50px); transform: scale(1.1); } 100% { filter: blur(70px); transform: scale(1.3); } }
+
+        .flash-btn { position: relative; width: calc(190px * var(--ui-scale)); height: calc(190px * var(--ui-scale)); border-radius: 50%; background: linear-gradient(145deg, #222, #111); border: 2px solid rgba(255,255,255,0.05); box-shadow: 15px 15px 30px rgba(0,0,0,0.8), -10px -10px 20px rgba(255,255,255,0.03), inset 0 0 20px rgba(0,0,0,0.8); color: #444; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1; }
+        body.on .flash-btn { background: linear-gradient(145deg, #fff, #e6f7ff); border-color: #fff; box-shadow: 0 0 50px rgba(0, 210, 255, 0.8), 0 0 100px rgba(0, 210, 255, 0.4), inset 0 0 30px #fff; color: #00a0cc; transform: scale(1.02); }
+        body.sos-active .flash-btn { background: linear-gradient(145deg, #fff, #ffe6e6); box-shadow: 0 0 50px rgba(255, 68, 68, 0.8), 0 0 100px rgba(255, 68, 68, 0.4), inset 0 0 30px #fff; color: var(--sos); }
+        .flash-btn:active { transform: scale(0.92); }
+        .flash-btn svg { width: calc(70px * var(--ui-scale)); height: calc(70px * var(--ui-scale)); fill: currentColor; }
+
+        .status-text { font-size: calc(17px * var(--ui-scale)); color: #666; font-weight: 500; letter-spacing: 1px; margin-bottom: calc(20px * var(--ui-scale)); }
+        body.on .status-text { color: var(--primary); text-shadow: 0 0 15px rgba(0, 210, 255, 0.5); }
+        body.sos-active .status-text { color: var(--sos); text-shadow: 0 0 15px rgba(255, 68, 68, 0.5); }
+
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 90; opacity: 0; pointer-events: none; }
+        .overlay.active { opacity: 1; pointer-events: auto; }
+        .sheet { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(25px); border-radius: 30px 30px 0 0; padding: calc(20px * var(--ui-scale)) calc(20px * var(--ui-scale)) calc(30px * var(--ui-scale)); border-top: 1px solid var(--border); z-index: 100; transform: translateY(100%); max-height: 85vh; overflow-y: auto; }
+        .sheet.open { transform: translateY(0); }
+        .handle { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 10px; margin: 0 auto 15px; }
+        .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .sheet-head h3 { font-size: calc(20px * var(--ui-scale)); }
+        .setting { display: flex; justify-content: space-between; align-items: center; padding: calc(15px * var(--ui-scale)) 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .setting:last-child { border-bottom: none; }
+        .setting-info h4 { font-size: calc(15px * var(--ui-scale)); margin-bottom: 3px; }
+        .setting-info p { font-size: calc(12px * var(--ui-scale)); color: #888; }
+
+        .switch { position: relative; width: calc(48px * var(--ui-scale)); height: calc(26px * var(--ui-scale)); flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #333; border-radius: 30px; }
+        .slider:before { content: ""; position: absolute; height: calc(20px * var(--ui-scale)); width: calc(20px * var(--ui-scale)); left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(calc(22px * var(--ui-scale))); }
+        html[lang="en"] input:checked + .slider:before { transform: translateX(calc(22px * var(--ui-scale))); }
+
+        input[type=range] { width: 100%; accent-color: var(--primary); margin-top: 10px; }
+        .toast { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; font-size: calc(13px * var(--ui-scale)); opacity: 0; transition: 0.4s; z-index: 200; white-space: nowrap; }
+        .toast.show { top: 20px; opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="battery" id="battery">
+            <svg class="bat-svg" id="batSvg" viewBox="0 0 24 24">
+                <path d="M15.67,4H14V2H10V4H8.33C7.6,4,7,4.6,7,5.33V20.67C7,21.4,7.6,22,8.33,22H15.67C16.4,22,17,21.4,17,20.67V5.33 C17,4.6,16.4,4,15.67,4z M15,20H9V6H15V20z"/>
+                <rect id="batFill" x="9" y="6" width="6" height="14" fill="var(--primary)" rx="1"/>
+            </svg>
+            <span id="batText">100%</span>
+        </div>
+        <div class="controls">
+            <div class="btn-glass" id="langBtn">EN</div>
+            <div class="btn-glass" id="settingsBtn"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg></div>
+        </div>
+    </div>
+
+    <div class="flash-wrap">
+        <button class="flash-btn" id="flashBtn">
+            <svg viewBox="0 0 24 24"><path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z"/><path d="M12,6c-3.31,0-6,2.69-6,6s2.69,6,6,6s6-2.69,6-6S15.31,6,12,6z M12,16c-2.21,0-4-1.79-4-4s1.79-4,4-4s4,1.79,4,4 S14.21,16,12,16z"/><rect x="11" y="1" width="2" height="4" rx="1"/></svg>
+        </button>
+    </div>
+    
+    <div class="status-text" id="statusText">جاهز للتشغيل</div>
+    <button class="sos-btn" id="sosBtn">SOS</button>
+
+    <div class="toast" id="toast"><span id="toastText"></span></div>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="sheet" id="sheet">
+        <div class="handle"></div>
+        <div class="sheet-head">
+            <h3 id="sTitle">الإعدادات</h3>
+            <div class="btn-glass" id="closeBtn" style="width:calc(30px * var(--ui-scale)); height:calc(30px * var(--ui-scale)); font-size:calc(18px * var(--ui-scale));">×</div>
+        </div>
+        
+        <div class="setting" style="flex-direction:column; align-items:flex-start; border-bottom: none; padding-bottom: 5px;">
+            <div class="setting-info"><h4 id="tUi">حجم الواجهة</h4><p id="dUi">تكبير أو تصغير العناصر</p></div>
+            <input type="range" id="uiScaleR" min="0.7" max="1.3" step="0.05" value="1">
+        </div>
+        <div class="setting">
+            <div class="setting-info"><h4 id="tWake">إبقاء الشاشة مضاءة</h4><p id="dWake">منع الهاتف من الإغلاق</p></div>
+            <label class="switch"><input type="checkbox" id="wakeT" checked><span class="slider"></span></label>
+        </div>
+        <div class="setting">
+            <div class="setting-info"><h4 id="tProx">مستشعر القرب</h4><p id="dProx">تمرير يدك لتشغيل الكشاف</p></div>
+            <label class="switch"><input type="checkbox" id="proxT"><span class="slider"></span></label>
+        </div>
+        <div class="setting">
+            <div class="setting-info"><h4 id="tGest">رج الهاتف</h4><p id="dGest">رج الهاتف للتشغيل والإطفاء</p></div>
+            <label class="switch"><input type="checkbox" id="gestT"><span class="slider"></span></label>
+        </div>
+        <div class="setting" style="flex-direction:column; align-items: flex-start;">
+            <div class="setting-info"><h4 id="tSens">حساسية الحركة</h4></div>
+            <input type="range" id="sensR" min="1" max="100" value="60">
+        </div>
+        <div class="setting">
+            <div class="setting-info"><h4 id="tVib">الاهتزاز</h4><p id="dVib">اهتزاز عند اللمس</p></div>
+            <label class="switch"><input type="checkbox" id="vibT" checked><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <script>
+        const T = {
+            ar: { l: "EN", ready: "جاهز للتشغيل", on: "الكشاف يعمل", sos: "وضع الطوارئ", init: "جاري التهيئة...", denied: "يجب السماح بالكاميرا", noSup: "الفلاش غير مدعوم", errProx: "مستشعر القرب غير مدعوم", set: "الإعدادات", ui: "حجم الواجهة", uiD: "تكبير أو تصغير العناصر", wake: "إبقاء الشاشة مضاءة", wakeD: "منع الإغلاق التلقائي", prox: "مستشعر القرب", proxD: "تمرير اليد فوق الشاشة", gest: "رج الهاتف", gestD: "رج الهاتف للتحكم", sens: "حساسية الحركة", vib: "الاهتزاز", vibD: "اهتزاز عند اللمس" },
+            en: { l: "ع", ready: "Ready", on: "Light ON", sos: "SOS Mode", init: "Loading...", denied: "Camera denied", noSup: "Flash not supported", errProx: "Proximity not supported", set: "Settings", ui: "UI Scale", uiD: "Resize elements", wake: "Keep Screen On", wakeD: "Prevent auto-lock", prox: "Proximity Sensor", proxD: "Wave hand to toggle", gest: "Shake Device", gestD: "Shake to toggle light", sens: "Sensitivity", vib: "Vibration", vibD: "Haptic feedback" }
+        };
+
+        let lang = 'ar', torch = false, cam = false, track = null, wake = null, sosInterval = null;
+        const $ = id => document.getElementById(id);
+
+        function toast(msg) { $('toastText').innerText = msg; $('toast').classList.add('show'); setTimeout(() => $('toast').classList.remove('show'), 2000); }
+
+        function setLang(l) {
+            lang = l; document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+            const t = T[l];
+            $('langBtn').innerText = t.l; $('statusText').innerText = torch ? t.on : t.ready;
+            $('sTitle').innerText = t.set; 
+            $('tUi').innerText = t.ui; $('dUi').innerText = t.uiD;
+            $('tWake').innerText = t.wake; $('dWake').innerText = t.wakeD;
+            $('tProx').innerText = t.prox; $('dProx').innerText = t.proxD; 
+            $('tGest').innerText = t.gest; $('dGest').innerText = t.gestD; 
+            $('tSens').innerText = t.sens; $('tVib').innerText = t.vib; $('dVib').innerText = t.vibD;
+        }
+
+        $('uiScaleR').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--ui-scale', e.target.value);
+        });
+
+        async function initCam() {
+            if (cam) return true;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                track = stream.getVideoTracks()[0];
+                if (!track.getCapabilities().torch) { toast(T[lang].noSup); return false; }
+                cam = true; return true;
+            } catch { toast(T[lang].denied); return false; }
+        }
+
+        async function toggle() {
+            if ($('vibT').checked && navigator.vibrate) navigator.vibrate(30);
+            if (!cam) { $('statusText').innerText = T[lang].init; if (!await initCam()) return; }
+            
+            if (sosInterval) { clearInterval(sosInterval); sosInterval = null; $('sosBtn').classList.remove('active'); document.body.classList.remove('sos-active'); }
+
+            try {
+                torch = !torch;
+                await track.applyConstraints({ advanced: [{ torch }] });
+                document.body.classList.toggle('on', torch);
+                $('statusText').innerText = torch ? T[lang].on : T[lang].ready;
+                if (torch && $('wakeT').checked && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen');
+                else if (!torch && wake) { wake.release(); wake = null; }
+            } catch { torch = !torch; }
+        }
+
+        $('sosBtn').onclick = async () => {
+            if (sosInterval) {
+                clearInterval(sosInterval); sosInterval = null;
+                $('sosBtn').classList.remove('active'); document.body.classList.remove('sos-active', 'on');
+                torch = false; if (track) await track.applyConstraints({ advanced: [{ torch: false }] });
+                $('statusText').innerText = T[lang].ready;
+                return;
+            }
+            
+            if (!cam && !await initCam()) return;
+            
+            $('sosBtn').classList.add('active'); document.body.classList.add('sos-active'); document.body.classList.remove('on');
+            $('statusText').innerText = T[lang].sos;
+
+            let state = false;
+            sosInterval = setInterval(async () => {
+                state = !state;
+                await track.applyConstraints({ advanced: [{ torch: state }] });
+            }, 300);
+        };
+
+        $('flashBtn').onclick = toggle;
+        $('langBtn').onclick = () => setLang(lang === 'ar' ? 'en' : 'ar');
+        $('settingsBtn').onclick = () => { $('sheet').classList.add('open'); $('overlay').classList.add('active'); };
+        const closeS = () => { $('sheet').classList.remove('open'); $('overlay').classList.remove('active'); };
+        $('closeBtn').onclick = closeS; $('overlay').onclick = closeS;
+
+        $('proxT').onchange = (e) => {
+            if (!e.target.checked) return;
+            if ('ProximitySensor' in window) {
+                try {
+                    const sensor = new ProximitySensor({ frequency: 10 });
+                    let near = false;
+                    sensor.onreading = () => { if (sensor.near !== near) { near = sensor.near; toggle(); } };
+                    sensor.start();
+                } catch { toast(T[lang].errProx); e.target.checked = false; }
+            } else { toast(T[lang].errProx); e.target.checked = false; }
+        };
+
+        let lX = null, lY = null, lZ = null, lTime = 0;
+        window.addEventListener('devicemotion', (e) => {
+            if (!$('gestT').checked) return;
+            const a = e.accelerationIncludingGravity; if (!a) return;
+            const th = 30 - (($('sensR').value / 100) * 25);
+            if (lX !== null) {
+                const dX = Math.abs(a.x - lX), dY = Math.abs(a.y - lY), dZ = Math.abs(a.z - lZ);
+                if ((dX > th && dY > th) || (dX > th && dZ > th) || (dY > th && dZ > th)) {
+                    const now = Date.now(); if (now - lTime > 800) { toggle(); lTime = now; }
+                }
+            }
+            lX = a.x; lY = a.y; lZ = a.z;
+        });
+
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(b => {
+                const up = () => { 
+                    const v = Math.round(b.level * 100); 
+                    $('batText').innerText = v + '%'; 
+                    const fillHeight = (v / 100) * 14;
+                    $('batFill').setAttribute('height', fillHeight);
+                    $('batFill').setAttribute('y', 20 - fillHeight);
+                    if (v <= 20) { $('batSvg').classList.add('low'); $('batFill').setAttribute('fill', 'var(--sos)'); }
+                    else { $('batSvg').classList.remove('low'); $('batFill').setAttribute('fill', 'var(--primary)'); }
+                };
+                up(); b.onlevelchange = up;
+            });
+        } else { $('battery').style.display = 'none'; }
+
+        setLang('ar');
+    </script>
+</body>
+</html>
